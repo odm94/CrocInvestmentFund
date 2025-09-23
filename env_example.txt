@@ -1,0 +1,7 @@
+# API Keys
+OPENAI_API_KEY=your_openai_api_key_here
+ALPHA_VANTAGE_API_KEY=your_alpha_vantage_api_key_here
+
+# Application Settings
+DEBUG=True
+LOG_LEVEL=INFO
