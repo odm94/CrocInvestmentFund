@@ -1,0 +1,11 @@
+# CROC Investment Fund - Local Environment Variables
+# Rename this file to .env and add your actual API keys
+
+# AI API Keys
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
+GROK_API_KEY=YOUR_GROK_API_KEY_HERE
+ALPHA_VANTAGE_API_KEY=
+
+# Application Settings
+DEBUG=True
+LOG_LEVEL=INFO
