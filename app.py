@@ -149,7 +149,22 @@ def main():
         show_financials = st.checkbox("Show Financial Metrics", value=True)
         show_ai_analysis = st.checkbox("Show AI Analysis", value=True)
         
-        if analysis_mode in ["Enhanced Analysis", "Ultimate Analysis (Most Comprehensive)"]:
+        # Initialize all variables
+        show_analyst_data = False
+        show_options_flow = False
+        show_institutional = False
+        show_sentiment = False
+        show_advanced_technical = False
+        show_sector_analysis = False
+        show_peer_comparison = False
+        show_earnings_analysis = False
+        show_risk_analysis = False
+        show_esg_analysis = False
+        show_x_feeds = False
+        show_social_sentiment = False
+        show_multi_ai_consensus = False
+        
+        if analysis_mode in ["Enhanced Analysis", "Ultimate Analysis", "Multi-AI Analysis (All Models + X Feeds)"]:
             show_analyst_data = st.checkbox("Show Analyst Ratings & Price Targets", value=True)
             show_options_flow = st.checkbox("Show Options Flow & Unusual Activity", value=True)
             show_institutional = st.checkbox("Show Institutional Holdings", value=True)
