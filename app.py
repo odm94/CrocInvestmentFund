@@ -16,11 +16,17 @@ import os
 # Add src directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
-from src.stock_analyzer import StockAnalyzer
-from src.enhanced_analyzer import EnhancedStockAnalyzer
-from src.ultimate_analyzer import UltimateStockAnalyzer
-from src.multi_ai_analyzer import MultiAIAnalyzer
-from src.x_analyst_feed import XAnalystFeed
+# Import with error handling for Streamlit Cloud
+try:
+    from src.stock_analyzer import StockAnalyzer
+    from src.enhanced_analyzer import EnhancedStockAnalyzer
+    from src.ultimate_analyzer import UltimateStockAnalyzer
+    from src.multi_ai_analyzer import MultiAIAnalyzer
+    from src.x_analyst_feed import XAnalystFeed
+    IMPORTS_AVAILABLE = True
+except ImportError as e:
+    st.error(f"Import error: {e}")
+    IMPORTS_AVAILABLE = False
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
