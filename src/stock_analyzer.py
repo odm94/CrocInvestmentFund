@@ -10,6 +10,7 @@ import logging
 from .data_fetcher import StockDataFetcher
 from .valuation_models import ValuationModels
 from .ai_analyzer import AIAnalyzer
+from .hybrid_ai_analyzer import HybridAIAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class StockAnalyzer:
     def __init__(self):
         self.data_fetcher = StockDataFetcher()
         self.valuation_models = ValuationModels()
-        self.ai_analyzer = AIAnalyzer()
+        self.ai_analyzer = HybridAIAnalyzer()  # Use hybrid AI analyzer
     
     def analyze_stock(self, symbol: str) -> Dict:
         """

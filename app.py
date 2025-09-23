@@ -17,6 +17,10 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from src.stock_analyzer import StockAnalyzer
+from src.enhanced_analyzer import EnhancedStockAnalyzer
+from src.ultimate_analyzer import UltimateStockAnalyzer
+from src.multi_ai_analyzer import MultiAIAnalyzer
+from src.x_analyst_feed import XAnalystFeed
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -100,6 +104,31 @@ def main():
     with st.sidebar:
         st.header("🔍 Analysis Parameters")
         
+        # AI Status
+        st.subheader("🤖 AI Status")
+        try:
+            from src.hybrid_ai_analyzer import HybridAIAnalyzer
+            ai_status = HybridAIAnalyzer().get_ai_status()
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if ai_status['grok_available']:
+                    st.success("🟢 Grok AI")
+                else:
+                    st.error("🔴 Grok AI")
+            
+            with col2:
+                if ai_status['openai_available']:
+                    st.warning("🟡 OpenAI (Quota)")
+                else:
+                    st.error("🔴 OpenAI")
+            
+            st.caption(f"Current: {ai_status['current_ai']}")
+        except:
+            st.info("AI Status: Checking...")
+        
+        st.markdown("---")
+        
         # Stock symbol input
         symbol = st.text_input(
             "Stock Symbol", 
@@ -109,10 +138,49 @@ def main():
         
         # Analysis options
         st.subheader("Analysis Options")
+        analysis_mode = st.selectbox(
+            "Analysis Mode",
+            ["Basic Analysis", "Enhanced Analysis", "Ultimate Analysis", "Multi-AI Analysis (All Models + X Feeds)"],
+            index=3
+        )
+        
         show_technical = st.checkbox("Show Technical Analysis", value=True)
         show_valuation = st.checkbox("Show Valuation Models", value=True)
         show_financials = st.checkbox("Show Financial Metrics", value=True)
         show_ai_analysis = st.checkbox("Show AI Analysis", value=True)
+        
+        if analysis_mode in ["Enhanced Analysis", "Ultimate Analysis (Most Comprehensive)"]:
+            show_analyst_data = st.checkbox("Show Analyst Ratings & Price Targets", value=True)
+            show_options_flow = st.checkbox("Show Options Flow & Unusual Activity", value=True)
+            show_institutional = st.checkbox("Show Institutional Holdings", value=True)
+            show_sentiment = st.checkbox("Show News Sentiment", value=True)
+            show_advanced_technical = st.checkbox("Show Advanced Technical Indicators", value=True)
+        
+        if analysis_mode == "Ultimate Analysis":
+            show_sector_analysis = st.checkbox("Show Sector & Industry Analysis", value=True)
+            show_peer_comparison = st.checkbox("Show Peer Company Comparison", value=True)
+            show_earnings_analysis = st.checkbox("Show Earnings Analysis & Guidance", value=True)
+            show_risk_analysis = st.checkbox("Show Advanced Risk Metrics", value=True)
+            show_esg_analysis = st.checkbox("Show ESG Analysis", value=True)
+        
+        if analysis_mode == "Multi-AI Analysis (All Models + X Feeds)":
+            show_sector_analysis = st.checkbox("Show Sector & Industry Analysis", value=True)
+            show_peer_comparison = st.checkbox("Show Peer Company Comparison", value=True)
+            show_earnings_analysis = st.checkbox("Show Earnings Analysis & Guidance", value=True)
+            show_risk_analysis = st.checkbox("Show Advanced Risk Metrics", value=True)
+            show_esg_analysis = st.checkbox("Show ESG Analysis", value=True)
+            show_x_feeds = st.checkbox("Show X (Twitter) Analyst Feeds", value=True)
+            show_social_sentiment = st.checkbox("Show Social Media Sentiment", value=True)
+            show_multi_ai_consensus = st.checkbox("Show Multi-AI Consensus", value=True)
+        
+        # AI Provider Selection
+        st.subheader("🤖 AI Analysis Provider")
+        ai_provider = st.selectbox(
+            "Choose AI Provider",
+            ["Grok AI (Recommended)", "OpenAI GPT", "Auto (Best Available)"],
+            index=0,
+            help="Grok AI provides unique insights and analysis style"
+        )
         
         # Advanced parameters
         with st.expander("Advanced Parameters"):
@@ -125,22 +193,77 @@ def main():
         if symbol:
             with st.spinner(f"Analyzing {symbol}..."):
                 try:
-                    # Initialize analyzer
-                    analyzer = StockAnalyzer()
-                    
-                    # Update model parameters
-                    analyzer.valuation_models.risk_free_rate = risk_free_rate / 100
-                    analyzer.valuation_models.market_risk_premium = market_risk_premium / 100
-                    
-                    # Perform analysis
-                    results = analyzer.analyze_stock(symbol)
+                    # Initialize analyzer based on mode
+                    if analysis_mode == "Multi-AI Analysis (All Models + X Feeds)":
+                        # Use multi-AI analyzer for comprehensive analysis
+                        analyzer = MultiAIAnalyzer()
+                        # Get basic stock data first
+                        basic_analyzer = StockAnalyzer()
+                        basic_data = basic_analyzer.analyze_stock(symbol)
+                        # Perform multi-AI analysis
+                        results = analyzer.generate_comprehensive_analysis(basic_data)
+                    elif analysis_mode == "Ultimate Analysis":
+                        analyzer = UltimateStockAnalyzer()
+                        # Update model parameters
+                        analyzer.valuation_models.risk_free_rate = risk_free_rate / 100
+                        analyzer.valuation_models.market_risk_premium = market_risk_premium / 100
+                        # Configure AI provider
+                        if ai_provider == "Grok AI (Recommended)":
+                            analyzer.ai_analyzer.set_ai_preference(use_grok=True)
+                        elif ai_provider == "OpenAI GPT":
+                            analyzer.ai_analyzer.set_ai_preference(use_grok=False)
+                        # Perform ultimate analysis
+                        results = analyzer.analyze_stock_ultimate(symbol)
+                    elif analysis_mode == "Enhanced Analysis":
+                        analyzer = EnhancedStockAnalyzer()
+                        # Update model parameters
+                        analyzer.valuation_models.risk_free_rate = risk_free_rate / 100
+                        analyzer.valuation_models.market_risk_premium = market_risk_premium / 100
+                        # Configure AI provider
+                        if ai_provider == "Grok AI (Recommended)":
+                            analyzer.ai_analyzer.set_ai_preference(use_grok=True)
+                        elif ai_provider == "OpenAI GPT":
+                            analyzer.ai_analyzer.set_ai_preference(use_grok=False)
+                        # Perform enhanced analysis
+                        results = analyzer.analyze_stock_enhanced(symbol)
+                    else:
+                        analyzer = StockAnalyzer()
+                        # Update model parameters
+                        analyzer.valuation_models.risk_free_rate = risk_free_rate / 100
+                        analyzer.valuation_models.market_risk_premium = market_risk_premium / 100
+                        # Configure AI provider
+                        if ai_provider == "Grok AI (Recommended)":
+                            analyzer.ai_analyzer.set_ai_preference(use_grok=True)
+                        elif ai_provider == "OpenAI GPT":
+                            analyzer.ai_analyzer.set_ai_preference(use_grok=False)
+                        # Perform basic analysis
+                        results = analyzer.analyze_stock(symbol)
                     
                     if 'error' in results:
                         st.error(f"Error: {results['error']}")
                         return
                     
                     # Display results
-                    display_analysis_results(results, show_technical, show_valuation, show_financials, show_ai_analysis)
+                    if analysis_mode == "Multi-AI Analysis (All Models + X Feeds)":
+                        display_multi_ai_analysis_results(
+                            results, show_technical, show_valuation, show_financials, show_ai_analysis,
+                            show_analyst_data, show_options_flow, show_institutional, show_sentiment, show_advanced_technical,
+                            show_sector_analysis, show_peer_comparison, show_earnings_analysis, show_risk_analysis, show_esg_analysis,
+                            show_x_feeds, show_social_sentiment, show_multi_ai_consensus
+                        )
+                    elif analysis_mode == "Ultimate Analysis":
+                        display_ultimate_analysis_results(
+                            results, show_technical, show_valuation, show_financials, show_ai_analysis,
+                            show_analyst_data, show_options_flow, show_institutional, show_sentiment, show_advanced_technical,
+                            show_sector_analysis, show_peer_comparison, show_earnings_analysis, show_risk_analysis, show_esg_analysis
+                        )
+                    elif analysis_mode == "Enhanced Analysis":
+                        display_enhanced_analysis_results(
+                            results, show_technical, show_valuation, show_financials, show_ai_analysis,
+                            show_analyst_data, show_options_flow, show_institutional, show_sentiment, show_advanced_technical
+                        )
+                    else:
+                        display_analysis_results(results, show_technical, show_valuation, show_financials, show_ai_analysis)
                     
                 except Exception as e:
                     st.error(f"An error occurred: {str(e)}")
@@ -366,6 +489,395 @@ def display_analysis_results(results, show_technical, show_valuation, show_finan
     
     summary_df = pd.DataFrame(summary_data)
     st.dataframe(summary_df, use_container_width=True, hide_index=True)
+
+def display_enhanced_analysis_results(results, show_technical, show_valuation, show_financials, show_ai_analysis,
+                                    show_analyst_data, show_options_flow, show_institutional, show_sentiment, show_advanced_technical):
+    """Display enhanced analysis results with all new features"""
+    
+    symbol = results['symbol']
+    stock_info = results['stock_info']
+    metrics = results['metrics']
+    valuation = results['valuation']
+    technical = results['technical_analysis']
+    recommendation = results.get('enhanced_recommendation', results.get('recommendation', {}))
+    
+    # Enhanced recommendation display
+    st.markdown("---")
+    st.subheader("🎯 Enhanced Investment Recommendation")
+    
+    rec_type = recommendation.get('enhanced_recommendation', recommendation.get('recommendation', 'HOLD'))
+    rec_score = recommendation.get('enhanced_score', recommendation.get('score', 0))
+    confidence = recommendation.get('confidence_level', recommendation.get('confidence', 0))
+    
+    if 'BUY' in rec_type:
+        st.markdown(f'<div class="recommendation-buy">', unsafe_allow_html=True)
+    elif 'SELL' in rec_type:
+        st.markdown(f'<div class="recommendation-sell">', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div class="recommendation-hold">', unsafe_allow_html=True)
+    
+    st.markdown(f"""
+    **{rec_type}** (Enhanced Score: {rec_score:.1f}, Confidence: {confidence:.1%})
+    
+    **Enhanced Analysis Factors:**
+    """)
+    
+    for factor in recommendation.get('enhanced_factors', recommendation.get('factors', [])):
+        st.markdown(f"• {factor}")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Data sources used
+    data_sources = recommendation.get('data_sources_used', [])
+    if data_sources:
+        st.markdown(f"**Data Sources:** {', '.join(data_sources)}")
+    
+    # Analyst Data Section
+    if show_analyst_data and 'analyst_insights' in results:
+        st.markdown("---")
+        st.subheader("📊 Analyst Ratings & Price Targets")
+        
+        analyst_insights = results['analyst_insights']
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Consensus Rating", analyst_insights.get('consensus_rating', 'N/A'))
+        with col2:
+            st.metric("Consensus Score", f"{analyst_insights.get('consensus_score', 0):.1f}/5")
+        with col3:
+            st.metric("Price Target Upside", f"{analyst_insights.get('price_target_upside', 0):.1f}%")
+        with col4:
+            st.metric("Analyst Confidence", f"{analyst_insights.get('analyst_confidence', 0):.1%}")
+    
+    # Options Flow Section
+    if show_options_flow and 'options_insights' in results:
+        st.markdown("---")
+        st.subheader("📈 Options Flow & Unusual Activity")
+        
+        options_insights = results['options_insights']
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Put/Call Ratio", f"{options_insights.get('put_call_ratio', 0):.2f}")
+        with col2:
+            st.metric("Options Sentiment", options_insights.get('options_sentiment', 'N/A'))
+        with col3:
+            st.metric("Unusual Activity", options_insights.get('unusual_activity', 0))
+        with col4:
+            st.metric("Options Signal", options_insights.get('options_flow_signal', 'N/A'))
+    
+    # Institutional Data Section
+    if show_institutional and 'institutional_insights' in results:
+        st.markdown("---")
+        st.subheader("🏛️ Institutional Holdings & Smart Money")
+        
+        institutional_insights = results['institutional_insights']
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Institutional Ownership", f"{institutional_insights.get('institutional_ownership', 0):.1f}%")
+        with col2:
+            st.metric("Institutional Support", institutional_insights.get('institutional_support', 'N/A'))
+        with col3:
+            st.metric("Smart Money Signal", institutional_insights.get('smart_money_signal', 'N/A'))
+        with col4:
+            st.metric("Number of Institutions", institutional_insights.get('number_of_institutions', 0))
+    
+    # Sentiment Analysis Section
+    if show_sentiment and 'sentiment_insights' in results:
+        st.markdown("---")
+        st.subheader("📰 News Sentiment & Media Buzz")
+        
+        sentiment_insights = results['sentiment_insights']
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("News Sentiment", f"{sentiment_insights.get('news_sentiment', 0):.2f}")
+        with col2:
+            st.metric("Sentiment Trend", sentiment_insights.get('sentiment_trend', 'N/A'))
+        with col3:
+            st.metric("Media Buzz", sentiment_insights.get('media_buzz', 0))
+        with col4:
+            st.metric("Sentiment Signal", sentiment_insights.get('sentiment_signal', 'N/A'))
+    
+    # Advanced Technical Section
+    if show_advanced_technical and 'advanced_technical_insights' in results:
+        st.markdown("---")
+        st.subheader("📊 Advanced Technical Indicators")
+        
+        technical_insights = results['advanced_technical_insights']
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("MACD Signal", technical_insights.get('macd_signal', 'N/A'))
+        with col2:
+            st.metric("Stochastic Signal", technical_insights.get('stochastic_signal', 'N/A'))
+        with col3:
+            st.metric("Volume Signal", technical_insights.get('volume_signal', 'N/A'))
+        with col4:
+            st.metric("Technical Momentum", f"{technical_insights.get('technical_momentum', 0):.2f}")
+    
+    # Call the basic display function for remaining sections
+    display_analysis_results(results, show_technical, show_valuation, show_financials, show_ai_analysis)
+
+def display_ultimate_analysis_results(results, show_technical, show_valuation, show_financials, show_ai_analysis,
+                                    show_analyst_data, show_options_flow, show_institutional, show_sentiment, show_advanced_technical,
+                                    show_sector_analysis, show_peer_comparison, show_earnings_analysis, show_risk_analysis, show_esg_analysis):
+    """Display ultimate analysis results with all advanced features"""
+    
+    symbol = results['symbol']
+    stock_info = results['stock_info']
+    recommendation = results.get('ultimate_recommendation', results.get('enhanced_recommendation', results.get('recommendation', {})))
+    
+    # Ultimate recommendation display
+    st.markdown("---")
+    st.subheader("🎯 ULTIMATE Investment Recommendation")
+    
+    rec_type = recommendation.get('ultimate_recommendation', recommendation.get('enhanced_recommendation', recommendation.get('recommendation', 'HOLD')))
+    rec_score = recommendation.get('ultimate_score', recommendation.get('enhanced_score', recommendation.get('score', 0)))
+    confidence = recommendation.get('confidence_level', recommendation.get('confidence', 0))
+    
+    if 'BUY' in rec_type:
+        st.markdown(f'<div class="recommendation-buy">', unsafe_allow_html=True)
+    elif 'SELL' in rec_type:
+        st.markdown(f'<div class="recommendation-sell">', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<div class="recommendation-hold">', unsafe_allow_html=True)
+    
+    st.markdown(f"""
+    **{rec_type}** (Ultimate Score: {rec_score:.1f}, Confidence: {confidence:.1%})
+    
+    **Ultimate Analysis Factors:**
+    """)
+    
+    for factor in recommendation.get('ultimate_factors', recommendation.get('enhanced_factors', recommendation.get('factors', []))):
+        st.markdown(f"• {factor}")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Data sources used
+    data_sources = recommendation.get('data_sources_used', [])
+    if data_sources:
+        st.markdown(f"**Data Sources:** {', '.join(data_sources)}")
+        st.markdown(f"**Analysis Depth:** {recommendation.get('analysis_depth', 'Ultimate Comprehensive')}")
+    
+    # Sector Analysis Section
+    if show_sector_analysis and 'sector_analysis' in results:
+        st.markdown("---")
+        st.subheader("🏭 Sector & Industry Analysis")
+        
+        sector_analysis = results['sector_analysis']
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Sector", sector_analysis.get('sector', 'N/A'))
+        with col2:
+            st.metric("vs Sector Performance", f"{sector_analysis.get('vs_sector_performance', 0):.1f}%")
+        with col3:
+            st.metric("vs Market Performance", f"{sector_analysis.get('vs_market_performance', 0):.1f}%")
+        with col4:
+            st.metric("Relative Volatility", f"{sector_analysis.get('relative_volatility', 0):.2f}")
+    
+    # Peer Comparison Section
+    if show_peer_comparison and 'peer_analysis' in results:
+        st.markdown("---")
+        st.subheader("👥 Peer Company Comparison")
+        
+        peer_analysis = results['peer_analysis']
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Peer Count", peer_analysis.get('peer_count', 0))
+        with col2:
+            st.metric("Average P/E Ratio", f"{peer_analysis.get('average_pe_ratio', 0):.1f}")
+        with col3:
+            st.metric("Average Return 1Y", f"{peer_analysis.get('average_return_1y', 0):.1f}%")
+        with col4:
+            st.metric("Peer Analysis", peer_analysis.get('peer_analysis', 'N/A'))
+    
+    # Earnings Analysis Section
+    if show_earnings_analysis and 'earnings_analysis' in results:
+        st.markdown("---")
+        st.subheader("📊 Earnings Analysis & Guidance")
+        
+        earnings_analysis = results['earnings_analysis']
+        earnings_guidance = results.get('earnings_guidance', {})
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            surprises = earnings_analysis.get('earnings_surprises', {})
+            st.metric("Avg Surprise %", f"{surprises.get('average_surprise_pct', 0):.1f}%")
+        with col2:
+            st.metric("Surprise Consistency", f"{surprises.get('surprise_consistency', 0):.1%}")
+        with col3:
+            st.metric("Earnings Quality", earnings_analysis.get('earnings_quality', 'N/A'))
+        with col4:
+            st.metric("Guidance Sentiment", earnings_guidance.get('guidance_sentiment', 'N/A'))
+    
+    # Risk Analysis Section
+    if show_risk_analysis and 'risk_analysis' in results:
+        st.markdown("---")
+        st.subheader("⚠️ Advanced Risk Metrics")
+        
+        risk_analysis = results['risk_analysis']
+        var_metrics = risk_analysis.get('var_metrics', {})
+        risk_adjusted = risk_analysis.get('risk_adjusted_returns', {})
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("VaR 95%", f"{var_metrics.get('var_95_historical', 0):.2%}")
+        with col2:
+            st.metric("Max Drawdown", f"{var_metrics.get('maximum_drawdown', 0):.2%}")
+        with col3:
+            st.metric("Sharpe Ratio", f"{risk_adjusted.get('sharpe_ratio', 0):.2f}")
+        with col4:
+            st.metric("Risk Rating", risk_adjusted.get('risk_adjusted_rating', 'N/A'))
+    
+    # ESG Analysis Section
+    if show_esg_analysis and 'risk_analysis' in results:
+        st.markdown("---")
+        st.subheader("🌱 ESG Analysis")
+        
+        esg_analysis = results['risk_analysis'].get('esg_analysis', {})
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("ESG Rating", esg_analysis.get('esg_rating', 'N/A'))
+        with col2:
+            st.metric("Environmental Score", esg_analysis.get('environmental_score', 0))
+        with col3:
+            st.metric("Social Score", esg_analysis.get('social_score', 0))
+        with col4:
+            st.metric("Governance Score", esg_analysis.get('governance_score', 0))
+    
+    # Call the enhanced display function for remaining sections
+    display_enhanced_analysis_results(
+        results, show_technical, show_valuation, show_financials, show_ai_analysis,
+        show_analyst_data, show_options_flow, show_institutional, show_sentiment, show_advanced_technical
+    )
+
+def display_multi_ai_analysis_results(results, show_technical, show_valuation, show_financials, show_ai_analysis,
+                                    show_analyst_data, show_options_flow, show_institutional, show_sentiment, show_advanced_technical,
+                                    show_sector_analysis, show_peer_comparison, show_earnings_analysis, show_risk_analysis, show_esg_analysis,
+                                    show_x_feeds, show_social_sentiment, show_multi_ai_consensus):
+    """Display multi-AI analysis results with all AI models and X feeds"""
+    
+    symbol = results.get('symbol', 'Unknown')
+    
+    # Multi-AI Consensus Analysis
+    if show_multi_ai_consensus and 'consensus_analysis' in results:
+        st.markdown("---")
+        st.subheader("🤖 Multi-AI Consensus Analysis")
+        
+        consensus = results['consensus_analysis']
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Consensus Recommendation", consensus.get('consensus_recommendation', 'N/A'))
+        with col2:
+            st.metric("Confidence Score", f"{consensus.get('confidence_score', 0):.1%}")
+        with col3:
+            st.metric("AI Agreement", f"{consensus.get('ai_agreement', 0):.1%}")
+        with col4:
+            st.metric("Data Sources", consensus.get('data_sources_used', 0))
+        
+        # Display consensus factors
+        factors = consensus.get('consensus_factors', [])
+        if factors:
+            st.markdown("**Consensus Factors:**")
+            for factor in factors:
+                st.markdown(f"• {factor}")
+    
+    # Individual AI Analyses
+    if 'ai_analyses' in results:
+        st.markdown("---")
+        st.subheader("🤖 Individual AI Model Analyses")
+        
+        ai_analyses = results['ai_analyses']
+        for provider, analysis in ai_analyses.items():
+            if 'error' not in analysis:
+                with st.expander(f"{provider.upper()} Analysis"):
+                    if 'ai_analysis' in analysis:
+                        st.markdown(analysis['ai_analysis'])
+                    if 'investment_thesis' in analysis:
+                        st.markdown("**Investment Thesis:**")
+                        st.markdown(analysis['investment_thesis'])
+                    if 'risk_assessment' in analysis:
+                        st.markdown("**Risk Assessment:**")
+                        st.markdown(analysis['risk_assessment'])
+    
+    # X (Twitter) Feeds
+    if show_x_feeds and 'analyst_feeds' in results:
+        st.markdown("---")
+        st.subheader("🐦 X (Twitter) Analyst Feeds")
+        
+        analyst_feeds = results['analyst_feeds']
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("X Mentions", analyst_feeds.get('x_analysts', {}).get('mentions', 0))
+        with col2:
+            st.metric("Analyst Sentiment", analyst_feeds.get('consensus_rating', 'N/A'))
+        with col3:
+            st.metric("Analyst Confidence", f"{analyst_feeds.get('analyst_confidence', 0):.1%}")
+        with col4:
+            st.metric("Price Targets", len(analyst_feeds.get('price_targets', [])))
+    
+    # Social Media Sentiment
+    if show_social_sentiment and 'social_sentiment' in results:
+        st.markdown("---")
+        st.subheader("📱 Social Media Sentiment")
+        
+        social_sentiment = results['social_sentiment']
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Overall Sentiment", f"{social_sentiment.get('overall_social_sentiment', 0):.2f}")
+        with col2:
+            st.metric("Twitter Sentiment", f"{social_sentiment.get('twitter_sentiment', 0):.2f}")
+        with col3:
+            st.metric("Reddit Sentiment", f"{social_sentiment.get('reddit_sentiment', 0):.2f}")
+        with col4:
+            st.metric("YouTube Sentiment", f"{social_sentiment.get('youtube_sentiment', 0):.2f}")
+    
+    # AI Provider Status
+    st.markdown("---")
+    st.subheader("🤖 AI Provider Status")
+    
+    try:
+        multi_analyzer = MultiAIAnalyzer()
+        ai_status = multi_analyzer.get_ai_status()
+        feed_status = multi_analyzer.get_feed_status()
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**AI Models:**")
+            for provider, status in ai_status.items():
+                if status == 'Available':
+                    st.success(f"🟢 {provider.upper()}")
+                else:
+                    st.error(f"🔴 {provider.upper()}")
+        
+        with col2:
+            st.markdown("**Data Feeds:**")
+            for feed, status in feed_status.items():
+                if status == 'Available':
+                    st.success(f"🟢 {feed.upper()}")
+                else:
+                    st.error(f"🔴 {feed.upper()}")
+    
+    except Exception as e:
+        st.error(f"Error getting AI status: {e}")
+    
+    # Call the ultimate display function for remaining sections
+    display_ultimate_analysis_results(
+        results, show_technical, show_valuation, show_financials, show_ai_analysis,
+        show_analyst_data, show_options_flow, show_institutional, show_sentiment, show_advanced_technical,
+        show_sector_analysis, show_peer_comparison, show_earnings_analysis, show_risk_analysis, show_esg_analysis
+    )
 
 if __name__ == "__main__":
     main()
